@@ -10,9 +10,13 @@ import { awaitAllCallbacks } from "langchain/callbacks";
 import { TokenTextSplitter } from "langchain/text_splitter";
 
 const app = express();
+app.listen(3000, () => {
+  console.log("Connected to Port 3000");
+});
+
 app.get("/", (req, res) => {
-  res.send("HI")
-})
+  res.send("HI");
+});
 
 async function langchain(input, destinationPath) {
   // Get PDF
