@@ -14,8 +14,13 @@ app.listen(3000, () => {
   console.log("Connected to Port 3000");
 });
 
-app.get("/", (req, res) => {
-  res.send("HI");
+
+
+app.get("/:input/:destinationPath", async (req, res) => {
+  const input = req.params.input;
+  const destinationPath = req.params.destinationPath;
+  const langchain = await langchain(input, destinationPath);
+  res.send(langchain);
 });
 
 async function langchain(input, destinationPath) {
