@@ -1,3 +1,4 @@
+import express from "express";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { OpenAI } from "langchain/llms/openai";
 import { CharacterTextSplitter } from "langchain/text_splitter";
@@ -7,6 +8,11 @@ import { BufferMemory } from "langchain/memory";
 import { loadQAChain } from "langchain/chains";
 import { awaitAllCallbacks } from "langchain/callbacks";
 import { TokenTextSplitter } from "langchain/text_splitter";
+
+const app = express();
+app.get("/", (req, res) => {
+  res.send("HI")
+})
 
 async function langchain(input, destinationPath) {
   // Get PDF
