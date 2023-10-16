@@ -18,7 +18,7 @@ app.listen(3000, () => {
 });
 
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
   // Get PDF
   const loader = new PDFLoader(destinationPath);
   const pdfDoc = await loader.load();
