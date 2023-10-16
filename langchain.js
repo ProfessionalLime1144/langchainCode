@@ -20,8 +20,9 @@ app.listen(3000, () => {
 app.get("/", (req, res) => {
   const input = req.get("input");
   const destinationPath = req.get("destinationPath");
-  console.log("INPUT: " + input);
-  console.log("PATH: " + destinationPath);
+  console.log(input);
+  console.log(destinationPath);
+  res.json({ input, destinationPath });
 });
 
 async function langchain(input, destinationPath) {
