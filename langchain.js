@@ -20,10 +20,12 @@ app.listen(3000, () => {
 app.post("/", async (req, res) => {
   const input = req.get("input");
   const destinationPath = req.get("destinationPath");
+  console.log("HI");
   try { 
     const serverResponse = await langchain(input, destinationPath);
     res.json({ serverResponse });
   } catch(err) {
+    console.log("Error: " + err);
     res.status(500).json({ error: "Internal server error: " + err.message });
   }
 });
