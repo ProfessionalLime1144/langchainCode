@@ -17,8 +17,7 @@ app.listen(3000, () => {
   console.log("Connected to Port 3000");
 });
 
-
-app.get("/", async (req, res) => {
+app.post("/", async (req, res) => {
   const input = req.get("input");
   const destinationPath = req.get("destinationPath");
   const serverResponse = await langchain(input, destinationPath);
