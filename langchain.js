@@ -1,4 +1,5 @@
 import express from "express";
+import bodyParser from "body-parser";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { OpenAI } from "langchain/llms/openai";
 import { CharacterTextSplitter } from "langchain/text_splitter";
@@ -10,17 +11,17 @@ import { awaitAllCallbacks } from "langchain/callbacks";
 import { TokenTextSplitter } from "langchain/text_splitter";
 
 const app = express();
+app.use(bodyParser.urlencoded({ extended: false }));
+
 app.listen(3000, () => {
   console.log("Connected to Port 3000");
 });
 
-
-
-app.get("/:input/:destinationPath", async (req, res) => {
-  const input = req.params.input;
-  const destinationPath = req.params.destinationPath;
-  const langchain = await langchain(input, destinationPath);
-  res.send(langchain);
+app.get("/", (req, res) => {
+  const input = req.get("input");
+  const destinationPath = req.get("destinationPath");
+  console.log(input);
+  console.log(destinationPath);
 });
 
 async function langchain(input, destinationPath) {
