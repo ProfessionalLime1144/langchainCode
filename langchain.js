@@ -17,7 +17,7 @@ app.listen(3000, () => {
   console.log("Connected to Port 3000");
 });
 
-app.get("/", (req, res) => {
+app.post("/", (req, res) => {
   const input = req.get("input");
   const destinationPath = req.get("destinationPath");
   console.log(input);
