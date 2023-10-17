@@ -1,16 +1,17 @@
-import express from "express";
-import bodyParser from "body-parser";
-import { PDFLoader } from "langchain/document_loaders/fs/pdf";
-import { OpenAI } from "langchain/llms/openai";
-import { CharacterTextSplitter } from "langchain/text_splitter";
-import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import { FaissStore } from "langchain/vectorstores/faiss";
-import { BufferMemory } from "langchain/memory";
-import { loadQAChain } from "langchain/chains";
-import { awaitAllCallbacks } from "langchain/callbacks";
-import { TokenTextSplitter } from "langchain/text_splitter";
-import axios, {isCancel, AxiosError} from 'axios';
-import fs from "fs";
+const express = require("express");
+const bodyParser = require("body-parser");
+const { PDFLoader } = require("langchain/document_loaders/fs/pdf");
+const { OpenAI } = require("langchain/llms/openai");
+const { CharacterTextSplitter } = require("langchain/text_splitter");
+const { OpenAIEmbeddings } = require("langchain/embeddings/openai");
+const { FaissStore } = require("langchain/vectorstores/faiss");
+const { BufferMemory } = require("langchain/memory");
+const { loadQAChain } = require("langchain/chains");
+const { awaitAllCallbacks } = require("langchain/callbacks");
+const { TokenTextSplitter } = require("langchain/text_splitter");
+const axios = require('axios');
+const fs = require("fs");
+const PdfParse = require("pdf-parse");
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -19,24 +20,25 @@ app.listen(3000, () => {
   console.log("Connected to Port 3000");
 });
 
-app.post("/", async (req, res) => {
-  const input = req.get("input");
-  const url = req.get("destinationPath");
-  
+app.get("/", async (req, res) => {
+  // const input = req.get("input");
+  // const url = req.get("destinationPath");
+  const url = "https://dingwallasc.files.wordpress.com/2020/03/pscyho-cybernetics-book-maxwell-maltz.pdf";
   try {
-    // Get file from URL
-    const response = await axios.get(url, { responseType: "stream "});
+    // Get file from URL returned as binary
+    const response = await axios.get(url, { responseType: "arraybuffer" });
     if (response.status === 200) {
-      const fileStream = response.data;
-
-      // Create a writable stream to save the file to your server
-      const writeStream = fs.createWriteStream('downloads/somefile.pdf'); // Replace with the desired path on your server
-
-      fileStream.pipe(writeStream);
-
-      writeStream.on('finish', () => {
-        res.send('File downloaded and saved successfully.');
+      res.set({
+        "Content-Type": "text/plain",
       });
+
+      // Convert binary data to text:
+      const data = await PdfParse(response.data);
+      res.send(data.text)
+
+      const serverResponse = await langchain("Explain this", data.text);
+      console.log(serverResponse);
+      
     } else {
       res.status(response.status).send('Failed to fetch the file.');
     }
@@ -46,16 +48,7 @@ app.post("/", async (req, res) => {
     }
 });
 
-
-async function langchain(input, destinationPath) {
-  // // Get PDF
-  const loader = new PDFLoader(destinationPath);
-  const pdfDoc = await loader.load();
-  // Get only the text portion  
-  let text = "";
-  for (let i = 0; i < pdfDoc.length; i++) {
-    text += await pdfDoc[i].pageContent;
-  }
+async function langchain(input, text) {
   // chunks is an array
   const textSplitter = new CharacterTextSplitter({
     separator: '\n',
@@ -64,7 +57,7 @@ async function langchain(input, destinationPath) {
   });
   const chunks = await textSplitter.createDocuments([text]);
   const knowledgeBase = await FaissStore.fromDocuments(chunks, new OpenAIEmbeddings("gpt-3.5-turbo", {
-    openAIApiKey: process.env.OPENAI_API_KEY
+    openAIApiKey: "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"
   }));
   const docs = await knowledgeBase.similaritySearch(input);
   const llm = new OpenAI();
