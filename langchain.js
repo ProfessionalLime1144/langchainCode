@@ -9,6 +9,8 @@ import { BufferMemory } from "langchain/memory";
 import { loadQAChain } from "langchain/chains";
 import { awaitAllCallbacks } from "langchain/callbacks";
 import { TokenTextSplitter } from "langchain/text_splitter";
+import axios, {isCancel, AxiosError} from 'axios';
+import fs from "fs";
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -19,16 +21,31 @@ app.listen(3000, () => {
 
 app.post("/", async (req, res) => {
   const input = req.get("input");
-  const destinationPath = req.get("destinationPath");
-  console.log("HI");
-  try { 
-    const serverResponse = await langchain(input, destinationPath);
-    res.json({ serverResponse });
+  const url = req.get("destinationPath");
+  
+  try {
+    // Get file from URL
+    const response = await axios.get(url, { responseType: "stream "});
+    if (response.status === 200) {
+      const fileStream = response.data;
+
+      // Create a writable stream to save the file to your server
+      const writeStream = fs.createWriteStream('downloads/somefile.pdf'); // Replace with the desired path on your server
+
+      fileStream.pipe(writeStream);
+
+      writeStream.on('finish', () => {
+        res.send('File downloaded and saved successfully.');
+      });
+    } else {
+      res.status(response.status).send('Failed to fetch the file.');
+    }
   } catch(err) {
-    console.log("Error: " + err);
-    res.status(500).json({ error: "Internal server error: " + err.message });
-  }
+      console.log("Error: " + err);
+      res.status(500).json({ error: "Internal server error: " + err.message });
+    }
 });
+
 
 async function langchain(input, destinationPath) {
   // // Get PDF
