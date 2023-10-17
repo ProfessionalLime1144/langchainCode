@@ -2,7 +2,6 @@
   "name": "nodejs",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
   "main": "langchain.js",
   "scripts": {
     "server": "nodemon ./langchain.js"
