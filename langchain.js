@@ -58,7 +58,7 @@ async function langchain(input, text) {
   });
   const chunks = await textSplitter.createDocuments([text]);
   const knowledgeBase = await FaissStore.fromDocuments(chunks, new OpenAIEmbeddings("gpt-3.5-turbo", {
-    openAIApiKey: "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"
+    openAIApiKey: process.env.OPENAI_API_KEY
   }));
   const docs = await knowledgeBase.similaritySearch(input);
   const llm = new OpenAI();
