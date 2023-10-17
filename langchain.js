@@ -24,6 +24,7 @@ app.get("/", async (req, res) => {
   // const input = req.get("input");
   // const url = req.get("destinationPath");
   const url = "https://dingwallasc.files.wordpress.com/2020/03/pscyho-cybernetics-book-maxwell-maltz.pdf";
+  console.log("Awaiting Response.");
   try {
     // Get file from URL returned as binary
     const response = await axios.get(url, { responseType: "arraybuffer" });
