@@ -34,12 +34,17 @@ app.get("/", async (req, res) => {
       });
 
       // Convert binary data to text:
-      const data = await PdfParse(response.data);
-      res.send(data.text)
+      try {  
+        const data = await PdfParse(response.data);
+        res.send(data.text)
 
-      const serverResponse = await langchain("Explain this", data.text);
-      console.log(serverResponse);
-      
+        const serverResponse = await langchain("Explain this", data.text);
+        console.log("SERVER RESPONSE: " + serverResponse);
+        
+      } catch(err) {
+        console.log("Error: " + err);
+        res.send(err)
+      }
     } else {
       res.status(response.status).send('Failed to fetch the file.');
     }
