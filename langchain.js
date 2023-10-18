@@ -16,7 +16,7 @@ const PdfParse = require("pdf-parse");
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.listen(process.env.PORT, () => {
+app.listen(3000, () => {
   console.log("Connected to Port 3000");
   console.log("API KEY: " + process.env.OPENAI_API_KEY);
 });
