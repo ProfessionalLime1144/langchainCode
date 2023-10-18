@@ -21,9 +21,12 @@ app.listen(process.env.PORT, () => {
 });
 
 app.post("/", async (req, res) => {
-  const input = req.get("input");
-  const url = req.get("destinationPath");
-  // const url = "https://dingwallasc.files.wordpress.com/2020/03/pscyho-cybernetics-book-maxwell-maltz.pdf";
+  // const input = req.get("input");
+  // const url = req.get("destinationPath");
+
+  const input = req.body.input;
+  const url = req.body.destinationPath;
+
   console.log("Awaiting Response.");
   try {
     // Get file from URL returned as binary
