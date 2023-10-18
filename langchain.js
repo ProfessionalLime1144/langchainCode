@@ -21,13 +21,13 @@ app.listen(process.env.PORT, () => {
 });
 
 app.post("/", async (req, res) => {
-  // const input = req.get("input");
-  // const url = req.get("destinationPath");
+  const input = req.get("input");
+  const url = req.get("destinationPath");
   
-  console.log("BODY: " + JSON.stringify(req.body));
+  // console.log("BODY: " + JSON.stringify(req.body));
   
-  const input = req.body.input;
-  const url = req.body.destinationPath;
+  // const input = req.body.input;
+  // const url = req.body.destinationPath;
 
   console.log("Awaiting Response.");
   try {
