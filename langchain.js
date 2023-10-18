@@ -24,7 +24,7 @@ app.post("/", async (req, res) => {
   // const input = req.get("input");
   // const url = req.get("destinationPath");
   
-  console.log("BODY: " + req.body);
+  console.log("BODY: " + JSON.stringify(req.body));
   
   const input = req.body.input;
   const url = req.body.destinationPath;
