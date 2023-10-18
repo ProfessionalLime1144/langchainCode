@@ -23,7 +23,9 @@ app.listen(process.env.PORT, () => {
 app.post("/", async (req, res) => {
   // const input = req.get("input");
   // const url = req.get("destinationPath");
-
+  
+  console.log("BODY: " + req.body);
+  
   const input = req.body.input;
   const url = req.body.destinationPath;
 
