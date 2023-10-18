@@ -16,8 +16,8 @@ const PdfParse = require("pdf-parse");
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.listen(3000, () => {
-  console.log("Connected to Port 3000");
+app.listen(process.env.PORT, () => {
+  console.log("Connected to Port " + process.env.PORT);
 });
 
 app.get("/", async (req, res) => {
