@@ -20,7 +20,7 @@ app.listen(process.env.PORT, () => {
   console.log("Connected to Port " + process.env.PORT);
 });
 
-app.get("/", async (req, res) => {
+app.post("/", async (req, res) => {
   const input = req.get("input");
   const url = req.get("destinationPath");
   // const url = "https://dingwallasc.files.wordpress.com/2020/03/pscyho-cybernetics-book-maxwell-maltz.pdf";
