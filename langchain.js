@@ -16,7 +16,7 @@ const PdfParse = require("pdf-parse");
 const app = express();
 app.use(express.json());
 
-app.listen(8080, () => {
+app.listen(process.env.PORT, () => {
   console.log("Connected to Port " + process.env.PORT);
 });
 
