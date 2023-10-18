@@ -40,6 +40,7 @@ app.post("/", async (req, res) => {
         const data = await PdfParse(response.data);
 
         const serverResponse = await langchain(input, data.text);
+        console.log(serverResponse);
         res.json({ serverResponse });
         
       } catch(err) {
