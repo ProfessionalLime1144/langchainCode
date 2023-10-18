@@ -21,9 +21,9 @@ app.listen(process.env.PORT, () => {
 });
 
 app.get("/", async (req, res) => {
-  // const input = req.get("input");
-  // const url = req.get("destinationPath");
-  const url = "https://dingwallasc.files.wordpress.com/2020/03/pscyho-cybernetics-book-maxwell-maltz.pdf";
+  const input = req.get("input");
+  const url = req.get("destinationPath");
+  // const url = "https://dingwallasc.files.wordpress.com/2020/03/pscyho-cybernetics-book-maxwell-maltz.pdf";
   console.log("Awaiting Response.");
   try {
     // Get file from URL returned as binary
@@ -35,7 +35,7 @@ app.get("/", async (req, res) => {
         const data = await PdfParse(response.data);
         res.send(data.text)
 
-        const serverResponse = await langchain("Explain this", data.text);
+        const serverResponse = await langchain(input, data.text);
         console.log("SERVER RESPONSE: " + serverResponse);
         
       } catch(err) {
