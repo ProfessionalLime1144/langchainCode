@@ -33,10 +33,9 @@ app.get("/", async (req, res) => {
       // Convert binary data to text:
       try {  
         const data = await PdfParse(response.data);
-        res.send(data.text)
 
         const serverResponse = await langchain(input, data.text);
-        console.log("SERVER RESPONSE: " + serverResponse);
+        res.json({ serverResponse });
         
       } catch(err) {
         console.log("Error: " + err);
