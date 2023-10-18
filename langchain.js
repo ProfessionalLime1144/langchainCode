@@ -18,7 +18,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.listen(3000, () => {
   console.log("Connected to Port 3000");
-  console.log("API KEY: " + process.env.OPENAI_API_KEY);
 });
 
 app.get("/", async (req, res) => {
