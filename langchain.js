@@ -29,10 +29,7 @@ app.get("/", async (req, res) => {
     // Get file from URL returned as binary
     const response = await axios.get(url, { responseType: "arraybuffer" });
     if (response.status === 200) {
-      res.set({
-        "Content-Type": "text/plain",
-      });
-
+      
       // Convert binary data to text:
       try {  
         const data = await PdfParse(response.data);
