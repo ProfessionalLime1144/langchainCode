@@ -24,17 +24,11 @@ app.post("/", async (req, res) => {
   const input = req.get("input");
   const url = req.get("destinationPath");
   
-  // console.log("BODY: " + JSON.stringify(req.body));
-  
-  // const input = req.body.input;
-  // const url = req.body.destinationPath;
-
   console.log("Awaiting Response.");
   try {
     // Get file from URL returned as binary
     const response = await axios.get(url, { responseType: "arraybuffer" });
     if (response.status === 200) {
-      
       // Convert binary data to text:
       try {  
         const data = await PdfParse(response.data);
