@@ -71,6 +71,7 @@ async function initializeVectorStore(text) {
     pineconeIndex,
     maxConcurrency: 5
   });
+  console.log("Store" + vectorStore);
 }
 
 async function langchain(input, vectorStore) {
