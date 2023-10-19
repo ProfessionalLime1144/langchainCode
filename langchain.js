@@ -57,24 +57,33 @@ app.post("/", async (req, res) => {
 });
 
 async function langchain(input, text) {
-  // chunks is an array
+  // chunks is an array of the file's text
   const textSplitter = new CharacterTextSplitter({
     separator: '\n',
     chunkSize: 1000,
     chunkOverlap: 200,
   });
   const chunks = await textSplitter.createDocuments([text]);
-  const knowledgeBase = await FaissStore.fromDocuments(chunks, new OpenAIEmbeddings("gpt-3.5-turbo", {
-    openAIApiKey: process.env.OPENAI_API_KEY
-  }));
-  const docs = await knowledgeBase.similaritySearch(input);
+  
+  const vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings(
+    "gpt-3.5-turbo",
+    {
+      openAIApiKey: process.env.OPENAI_API_KEY
+    }),{
+    pineconeIndex,
+    maxConcurrency: 5
+  });
+  const docs = await vectorStore.similaritySearch(input, 3);
+
   const llm = new OpenAI();
   const chain = await loadQAChain(llm, { type: "stuff" });
-  const cb = await awaitAllCallbacks();
+  
   let response;
+  
   await chain.call({
     input_documents: docs,
     question: input
   }).then(res => response = res.text);
-  return await response;
-}
+  
+  return response;
+};
