@@ -72,7 +72,7 @@ async function initializeVectorStore(text) {
     pineconeIndex,
     maxConcurrency: 5
   });
-  console.log("Store" + vectorStore);
+  console.log("Store" + JSON.stringify(vectorStore));
 }
 
 async function langchain(input, vectorStore) {
@@ -101,4 +101,5 @@ const pinecone = new Pinecone({
 let pineconeIndex;
 (async () => {
   pineconeIndex = await pinecone.index(process.env.PINECONE_INDEX);
+  console.log("pineconeIndex connected:\n" + pineconeIndex);
 })();
