@@ -62,6 +62,7 @@ app.post("/input", async (req, res) => {
 
   try {  
     const serverResponse = await langchain("What do you mean by that?", vectorStore);
+    res.json({ serverResponse });
     console.log(serverResponse);    
   }
   catch(err) {
