@@ -47,8 +47,7 @@ app.post("/initialize", async (req, res) => {
     try {
       // Convert binary data to text:
       const data = await PdfParse(response.data);
-      const vectorStore = await initializeVectorStore(data.text);
-      console.log("VSTOR: " + JSON.stringify(vectorStore));
+      await initializeVectorStore(data.text);
       res.json({ vectorStore });
     } catch(err) {
         return "Error: " + err;
@@ -56,9 +55,29 @@ app.post("/initialize", async (req, res) => {
   }
 });
 
+let vectorStore;
+async function initializeVectorStore(text) {
+  // chunks is an array of the file's text
+  const textSplitter = new CharacterTextSplitter({
+    separator: '\n',
+    chunkSize: 1000,
+    chunkOverlap: 200,
+  });
+  const chunks = await textSplitter.createDocuments([text]);
+
+  vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings(
+    "gpt-3.5-turbo",
+    {
+      openAIApiKey: process.env.OPENAI_API_KEY
+    }),{
+    pineconeIndex,
+    maxConcurrency: 5
+  });
+  console.log("Store: " + JSON.stringify(vectorStore));
+}
+
 app.post("/input", async (req, res) => {
   const input = req.get("input");
-  const vectorStore = req.get("vectorStore");
   console.log("HEREISVECTORE" + vectorStore);
   console.log(typeof vectorStore);
   try {  
@@ -72,26 +91,6 @@ app.post("/input", async (req, res) => {
   }}
 );
 
-async function initializeVectorStore(text) {
-  // chunks is an array of the file's text
-  const textSplitter = new CharacterTextSplitter({
-    separator: '\n',
-    chunkSize: 1000,
-    chunkOverlap: 200,
-  });
-  const chunks = await textSplitter.createDocuments([text]);
-
-  const vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings(
-    "gpt-3.5-turbo",
-    {
-      openAIApiKey: process.env.OPENAI_API_KEY
-    }),{
-    pineconeIndex,
-    maxConcurrency: 5
-  });
-  console.log("Store" + JSON.stringify(vectorStore));
-  return vectorStore;
-}
 
 async function langchain(input, vectorStore) {
   // Search for similar docs between the vector database and the input
@@ -107,6 +106,3 @@ async function langchain(input, vectorStore) {
   await chain.call({ input_documents: docs, question: input}).then(res => response = res.text);  
   return response;
 };
-
-
-
