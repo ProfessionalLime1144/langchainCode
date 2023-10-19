@@ -41,6 +41,8 @@ app.post("/initialize", async(req, res) => {
   // Get file from URL returned as binary
   const response = await axios.get(url, { responseType: "arraybuffer" });
   
+  console.log("awaiting response");
+  
   if (response.status === 200) {
     try {
       // Convert binary data to text:
