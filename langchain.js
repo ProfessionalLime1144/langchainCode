@@ -30,13 +30,14 @@ app.post("/initialize", async(req, res) => {
   const response = await axios.get(url, { responseType: "arraybuffer" });
   
   if (response.status === 200) {
-    // Convert binary data to text:
-    const data = await PdfParse(response.data);
-    const vectorStore = await initializeVectorStore(data.text);
-    res.json({ vectorStore });
-  } else {
-      return "Error";
-  }
+    try {
+      // Convert binary data to text:
+      const data = await PdfParse(response.data);
+      const vectorStore = await initializeVectorStore(data.text);
+      res.json({ vectorStore });
+    } catch(err) {
+        return "Error: " + err;
+    }
 });
 
 app.post("/input", async (req, res) => {
