@@ -18,6 +18,18 @@ const app = express();
 app.use(express.json());
 
 app.listen(process.env.PORT, () => {
+  // Connect Pinecone
+  const pinecone = new Pinecone({
+    apiKey: process.env.PINECONE_API_KEY,
+    environment: "gcp-starter"
+  });
+  
+  let pineconeIndex;
+  (async () => {
+    pineconeIndex = await pinecone.index(process.env.PINECONE_INDEX);
+    console.log("pineconeIndex connected:\n" + pineconeIndex);
+  })();
+  
   console.log("Connected to Port " + process.env.PORT);
 });
 
@@ -92,14 +104,3 @@ async function langchain(input, vectorStore) {
 
 
 
-
-const pinecone = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY,
-  environment: "gcp-starter"
-});
-
-let pineconeIndex;
-(async () => {
-  pineconeIndex = await pinecone.index(process.env.PINECONE_INDEX);
-  console.log("pineconeIndex connected:\n" + pineconeIndex);
-})();
