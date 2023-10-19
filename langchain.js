@@ -10,8 +10,9 @@ const { loadQAChain } = require("langchain/chains");
 const { awaitAllCallbacks } = require("langchain/callbacks");
 const { TokenTextSplitter } = require("langchain/text_splitter");
 const axios = require('axios');
-const fs = require("fs");
 const PdfParse = require("pdf-parse");
+const { Pinecone } = require("@pinecone-database/pinecone");
+const { PineconeStore } = require("langchain/vectorstores/pinecone");
 
 const app = express();
 app.use(express.json());
@@ -81,3 +82,13 @@ async function langchain(input, text) {
   
   return response;
 };
+
+const pinecone = new Pinecone({
+  apiKey: process.env.PINECONE_API_KEY,
+  environment: "gcp-starter"
+});
+
+let pineconeIndex;
+(async () => {
+  pineconeIndex = await pinecone.index(process.env.PINECONE_INDEX);
+})();
