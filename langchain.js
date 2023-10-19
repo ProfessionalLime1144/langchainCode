@@ -38,6 +38,7 @@ app.post("/initialize", async(req, res) => {
     } catch(err) {
         return "Error: " + err;
     }
+  }
 });
 
 app.post("/input", async (req, res) => {
