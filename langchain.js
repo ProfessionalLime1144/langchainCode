@@ -35,8 +35,8 @@ app.listen(process.env.PORT, () => {
 
 // Initialize vector datbaase
 app.post("/initialize", async (req, res) => {
-  // const url = req.get("destinationPath");
-  const url = "https://dingwallasc.files.wordpress.com/2020/03/pscyho-cybernetics-book-maxwell-maltz.pdf";
+  const url = req.get("destinationPath");
+  // const url = "https://dingwallasc.files.wordpress.com/2020/03/pscyho-cybernetics-book-maxwell-maltz.pdf";
 
   // Get file from URL returned as binary
   const response = await axios.get(url, { responseType: "arraybuffer" });
