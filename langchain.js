@@ -17,6 +17,7 @@ const { PineconeStore } = require("langchain/vectorstores/pinecone");
 const app = express();
 app.use(express.json());
 
+let pineconeIndex;
 app.listen(process.env.PORT, () => {
   // Connect Pinecone
   const pinecone = new Pinecone({
@@ -24,7 +25,6 @@ app.listen(process.env.PORT, () => {
     environment: "gcp-starter"
   });
   
-  let pineconeIndex;
   (async () => {
     pineconeIndex = await pinecone.index(process.env.PINECONE_INDEX);
     console.log("pineconeIndex connected:\n" + pineconeIndex);
@@ -88,6 +88,7 @@ async function initializeVectorStore(text) {
     maxConcurrency: 5
   });
   console.log("Store" + JSON.stringify(vectorStore));
+  return vectorStore;
 }
 
 async function langchain(input, vectorStore) {
