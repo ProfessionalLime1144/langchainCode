@@ -21,37 +21,39 @@ app.listen(process.env.PORT, () => {
   console.log("Connected to Port " + process.env.PORT);
 });
 
-app.post("/", async (req, res) => {
-  const input = req.get("input");
-  const url = req.get("destinationPath");
-  
-  console.log("Awaiting Response.");
-  try {
-    // Get file from URL returned as binary
-    const response = await axios.get(url, { responseType: "arraybuffer" });
-    if (response.status === 200) {
-      // Convert binary data to text:
-      try {  
-        const data = await PdfParse(response.data);
+// Initialize vector datbaase
+app.post("/initialize", async(req, res) => {
+  // const url = req.get("destinationPath");
+  const url = "https://dingwallasc.files.wordpress.com/2020/03/pscyho-cybernetics-book-maxwell-maltz.pdf";
 
-        const serverResponse = await langchain(input, data.text);
-        console.log(serverResponse);
-        res.json({ serverResponse });
-        
-      } catch(err) {
-        console.log("Error: " + err);
-        res.send(err)
-      }
-    } else {
-      res.status(response.status).send('Failed to fetch the file.');
-    }
-  } catch(err) {
-      console.log("Error: " + err);
-      res.status(500).json({ error: "Internal server error: " + err.message });
-    }
+  // Get file from URL returned as binary
+  const response = await axios.get(url, { responseType: "arraybuffer" });
+  
+  if (response.status === 200) {
+    // Convert binary data to text:
+    const data = await PdfParse(response.data);
+    const vectorStore = await initializeVectorStore(data.text);
+    return vectorStore;
+  } else {
+      return "Error";
+  }
 });
 
-async function langchain(input, text) {
+app.post("/input", async (req, res) => {
+  const input = req.get("input");
+  const vectorStore= req.get("vectorStore");
+
+  try {  
+    const serverResponse = await langchain("What do you mean by that?", vectorStore);
+    console.log(serverResponse);    
+  }
+  catch(err) {
+    res.send("ERROR: " + err);
+    console.log(err);
+  }}
+);
+
+async function initializeVectorStore(text) {
   // chunks is an array of the file's text
   const textSplitter = new CharacterTextSplitter({
     separator: '\n',
@@ -59,7 +61,7 @@ async function langchain(input, text) {
     chunkOverlap: 200,
   });
   const chunks = await textSplitter.createDocuments([text]);
-  
+
   const vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings(
     "gpt-3.5-turbo",
     {
@@ -68,20 +70,25 @@ async function langchain(input, text) {
     pineconeIndex,
     maxConcurrency: 5
   });
+}
+
+async function langchain(input, vectorStore) {
+  // Search for similar docs between the vector database and the input
   const docs = await vectorStore.similaritySearch(input, 3);
 
+  // Create a chain WORKING ON IT
   const llm = new OpenAI();
   const chain = await loadQAChain(llm, { type: "stuff" });
-  
+
+  // Get resposne from chain
   let response;
   
-  await chain.call({
-    input_documents: docs,
-    question: input
-  }).then(res => response = res.text);
-  
+  await chain.call({ input_documents: docs, question: input}).then(res => response = res.text);  
   return response;
 };
+
+
+
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
