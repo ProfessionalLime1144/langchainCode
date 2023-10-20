@@ -66,13 +66,7 @@ async function initializeVectorStore(text) {
   const chunks = await textSplitter.createDocuments([text]);
 
   vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings(
-    "gpt-3.5-turbo",
-    {
-      openAIApiKey: process.env.OPENAI_API_KEY
-    }),{
-    pineconeIndex,
-    maxConcurrency: 5
-  });
+    "gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }), { pineconeIndex });
   console.log("Store: " + JSON.stringify(vectorStore));
 }
 
