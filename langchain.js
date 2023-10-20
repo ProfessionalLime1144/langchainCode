@@ -59,7 +59,11 @@ app.post("/initialize", async (req, res) => {
       const vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings("gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }), { pineconeIndex }).catch(err => { console.log("Error Vector: " + err) });
       
       console.log("Store: " + JSON.stringify(vectorStore));
-      res.json({ successMessage: "VectorStore instance successfully intantiated" });
+      res.json(
+        {
+          successMessage: "VectorStore instance successfully intantiated",
+          vectorStore
+        });
       
     } catch(err) {
         res.json({ Error: "Error instantiating vectorstore: " + err });
