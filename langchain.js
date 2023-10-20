@@ -40,37 +40,32 @@ app.post("/initialize", async (req, res) => {
 
   // Get file from URL returned as binary
   const response = await axios.get(url, { responseType: "arraybuffer" });
-  
-  console.log("awaiting response");
+  console.log("Intantiation request made...");
   
   if (response.status === 200) {
     try {
       // Convert binary data to text:
       const data = await PdfParse(response.data);
-      await initializeVectorStore(data.text);
-      await res.json({ successMessage: "VectorStore Successfully instantiated" });
+      const text = data.text;
+      
+      // chunks is an array of the file's text
+      const textSplitter = new CharacterTextSplitter({
+        separator: '\n',
+        chunkSize: 1000,
+        chunkOverlap: 200,
+      });
+      const chunks = await textSplitter.createDocuments([text]);
+      
+      const vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings( "gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }),{ pineconeIndex }).catch(err => { console.log("Error Vector: " + err) });
+      
+      console.log("Store: " + JSON.stringify(vectorStore));
+      await res.json({ vectorStore });
+      
     } catch(err) {
         res.json({ Error: "Error instantiating vectorstore: " + err });
     }
   }
 });
-
-let vectorStore;
-async function initializeVectorStore(text) {
-  // chunks is an array of the file's text
-  const textSplitter = new CharacterTextSplitter({
-    separator: '\n',
-    chunkSize: 1000,
-    chunkOverlap: 200,
-  });
-  const chunks = await textSplitter.createDocuments([text]);
-
-  vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings(
-    "gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }), { pineconeIndex }).catch(err => {
-    console.log("Error Vector: " + err)
-  });
-  console.log("Store: " + JSON.stringify(vectorStore));
-}
 
 app.post("/input", async (req, res) => {
   const input = req.get("input");
