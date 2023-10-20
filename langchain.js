@@ -56,10 +56,10 @@ app.post("/initialize", async (req, res) => {
       });
       const chunks = await textSplitter.createDocuments([text]);
       
-      const vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings( "gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }),{ pineconeIndex }).catch(err => { console.log("Error Vector: " + err) });
+      const vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings("gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }), { pineconeIndex }).catch(err => { console.log("Error Vector: " + err) });
       
       console.log("Store: " + JSON.stringify(vectorStore));
-      await res.json({ vectorStore });
+      res.json({ vectorStore });
       
     } catch(err) {
         res.json({ Error: "Error instantiating vectorstore: " + err });
