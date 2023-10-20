@@ -47,8 +47,10 @@ app.post("/initialize", async (req, res) => {
     try {
       // Convert binary data to text:
       const data = await PdfParse(response.data);
+      
       await initializeVectorStore(data.text);
-      await res.json({ vectorStore });
+      
+      // await res.json({ vectorStore });
     } catch(err) {
         return "Error: " + err;
     }
