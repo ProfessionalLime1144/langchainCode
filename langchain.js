@@ -33,7 +33,6 @@ app.listen(process.env.PORT, () => {
   console.log("Connected to Port " + process.env.PORT);
 });
 
-let vectorStore;
 // Initialize vector datbaase
 app.post("/initialize", async (req, res) => {
   const url = req.get("destinationPath");
@@ -57,7 +56,7 @@ app.post("/initialize", async (req, res) => {
       });
       const chunks = await textSplitter.createDocuments([text]);
       
-      vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings("gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }), { pineconeIndex }).catch(err => { console.log("Error Vector: " + err) });
+      const vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings("gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }), { pineconeIndex }).catch(err => { console.log("Error Vector: " + err) });
       
       console.log("Store: " + JSON.stringify(vectorStore));
       res.json({ successMessage: "VectorStore instance successfully intantiated" });
