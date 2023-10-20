@@ -73,8 +73,10 @@ app.post("/initialize", async (req, res) => {
 
 app.post("/input", async (req, res) => {
   const input = req.get("input");
+  const vectorStore = req.get("vectorStore");
   console.log("HEREISVECTORE" + vectorStore);
   console.log(typeof vectorStore);
+  
   try {  
     const serverResponse = await langchain("What do you mean by that?", vectorStore);
     res.json({ serverResponse });
