@@ -46,7 +46,7 @@ async function initializeVectorStore(text) {
   
   vectorStore = new PineconeStore(
     new OpenAIEmbeddings("gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }),
-    pineconeIndex
+    { pineconeIndex }
   );
 };
 
@@ -80,11 +80,8 @@ app.post("/initialize", async (req, res) => {
 
 app.post("/input", async (req, res) => {
   const input = req.get("input");
-  console.log("HEREISVECTORE" + vectorStore);
-  console.log(typeof vectorStore);
-  
   try {  
-    const serverResponse = await langchain("What do you mean by that?", vectorStore);
+    const serverResponse = await langchain("What do you mean by that?");
     res.json({ serverResponse });
     console.log(serverResponse);    
   }
