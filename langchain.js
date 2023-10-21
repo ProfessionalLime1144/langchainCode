@@ -33,6 +33,23 @@ app.listen(process.env.PORT, () => {
   console.log("Connected to Port " + process.env.PORT);
 });
 
+let vectorStore;
+async function initializeVectorStore(text) {
+  // chunks is an array of the file's text
+  const textSplitter = new CharacterTextSplitter({
+    separator: '\n',
+    chunkSize: 1000,
+    chunkOverlap: 200,
+  });
+  const chunks = await textSplitter.createDocuments([text]);
+  console.log("CHUNKING.... ");
+  
+  vectorStore = new PineconeStore(
+    new OpenAIEmbeddings("gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }),
+    pineconeIndex
+  );
+};
+
 // Initialize vector datbaase
 app.post("/initialize", async (req, res) => {
   const url = req.get("destinationPath");
@@ -47,24 +64,14 @@ app.post("/initialize", async (req, res) => {
       // Convert binary data to text:
       const data = await PdfParse(response.data);
       const text = data.text;
-      
-      // chunks is an array of the file's text
-      const textSplitter = new CharacterTextSplitter({
-        separator: '\n',
-        chunkSize: 1000,
-        chunkOverlap: 200,
-      });
-      const chunks = await textSplitter.createDocuments([text]);
-      
-      const vectorStore = await PineconeStore.fromDocuments(chunks, new OpenAIEmbeddings("gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }), { pineconeIndex }).catch(err => { console.log("Error Vector: " + err) });
+      await initializeVectorStore(text);
       
       console.log("Store: " + JSON.stringify(vectorStore));
       res.json(
         {
           successMessage: "VectorStore instance successfully intantiated",
           vectorStore
-        });
-      
+        }); 
     } catch(err) {
         res.json({ Error: "Error instantiating vectorstore: " + err });
     }
@@ -73,7 +80,6 @@ app.post("/initialize", async (req, res) => {
 
 app.post("/input", async (req, res) => {
   const input = req.get("input");
-  const vectorStore = req.get("vectorStore");
   console.log("HEREISVECTORE" + vectorStore);
   console.log(typeof vectorStore);
   
