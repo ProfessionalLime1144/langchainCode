@@ -92,7 +92,7 @@ app.post("/input", async (req, res) => {
 );
 
 
-async function langchain(input, vectorStore) {
+async function langchain(input) {
   // Search for similar docs between the vector database and the input
   const docs = await vectorStore.similaritySearch(input, 3);
 
