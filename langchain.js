@@ -33,7 +33,6 @@ app.listen(process.env.PORT, () => {
   console.log("Connected to Port " + process.env.PORT);
 });
 
-let vectorStore;
 async function initializeVectorStore(text) {
   // chunks is an array of the file's text
   const textSplitter = new CharacterTextSplitter({
@@ -44,10 +43,11 @@ async function initializeVectorStore(text) {
   const chunks = await textSplitter.createDocuments([text]);
   console.log("CHUNKING.... ");
   
-  vectorStore = new PineconeStore(
+  const vectorStore = new PineconeStore(
     new OpenAIEmbeddings("gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }),
     { pineconeIndex }
   );
+  return vectorStore;
 };
 
 // Initialize vector datbaase
@@ -64,7 +64,7 @@ app.post("/initialize", async (req, res) => {
       // Convert binary data to text:
       const data = await PdfParse(response.data);
       const text = data.text;
-      await initializeVectorStore(text);
+      const vectorStore = await initializeVectorStore(text);
       
       console.log("Store: " + JSON.stringify(vectorStore));
       res.json(
@@ -80,8 +80,9 @@ app.post("/initialize", async (req, res) => {
 
 app.post("/input", async (req, res) => {
   const input = req.get("input");
+  const vectorStore = req.get("vectorStore");
   try {  
-    const serverResponse = await langchain("What do you mean by that?");
+    const serverResponse = await langchain("What do you mean by that?", vectorStore);
     res.json({ serverResponse });
     console.log(serverResponse);    
   }
@@ -92,7 +93,7 @@ app.post("/input", async (req, res) => {
 );
 
 
-async function langchain(input) {
+async function langchain(input, vectorStore) {
   // Search for similar docs between the vector database and the input
   const docs = await vectorStore.similaritySearch(input, 3);
 
