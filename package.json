@@ -2,9 +2,10 @@
   "name": "nodejs",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "langchain.js",
   "scripts": {
-    "server": "nodemon ./langchain.js"
+    "server": "nodemon ./index.js"
   },
   "keywords": [],
   "author": "",
@@ -12,11 +13,13 @@
   "dependencies": {
     "@pinecone-database/pinecone": "^1.1.1",
     "@types/node": "^18.0.6",
-    "axios": "^1.5.1",
+    "@xenova/transformers": "^2.7.0",
+    "axios": "^1.6.0",
     "body-parser": "^1.20.2",
     "express": "^4.18.2",
     "faiss-node": "^0.3.0",
     "langchain": "0.0.167",
+    "mysql2": "^3.6.2",
     "node-fetch": "^3.2.6",
     "pdf-parse": "^1.1.1",
     "web-streams-polyfill": "^3.2.1"
