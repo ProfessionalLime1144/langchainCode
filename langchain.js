@@ -6,8 +6,6 @@ import { pipeline, env, AutoModel, AutoTokenizer } from '@xenova/transformers';
 import axios from "axios";
 import PdfParse from "./modules/pdfParsed.js";
 
-import summaryTool from "./modules/node-summary.js";
-
 import { FaissStore } from "langchain/vectorstores/faiss";
 import { HuggingFaceTransformersEmbeddings } from "langchain/embeddings/hf_transformers";
 
