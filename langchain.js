@@ -1,109 +1,69 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const { PDFLoader } = require("langchain/document_loaders/fs/pdf");
-const { OpenAI } = require("langchain/llms/openai");
-const { CharacterTextSplitter } = require("langchain/text_splitter");
-const { OpenAIEmbeddings } = require("langchain/embeddings/openai");
-const { FaissStore } = require("langchain/vectorstores/faiss");
-const { BufferMemory } = require("langchain/memory");
-const { loadQAChain } = require("langchain/chains");
-const { awaitAllCallbacks } = require("langchain/callbacks");
-const { TokenTextSplitter } = require("langchain/text_splitter");
-const axios = require('axios');
-const PdfParse = require("pdf-parse");
-const { Pinecone } = require("@pinecone-database/pinecone");
-const { PineconeStore } = require("langchain/vectorstores/pinecone");
+import express from "express";
+import mysql from 'mysql2';
+import instantiateDatabase from "./instantiateDatabase.js";
+import { CharacterTextSplitter, RecursiveCharacterTextSplitter } from "langchain/text_splitter"
+import { pipeline, env, AutoModel, AutoTokenizer } from '@xenova/transformers';
+import axios from "axios";
+import PdfParse from "./modules/pdfParsed.js";
 
-const app = express();
-app.use(express.json());
+import summaryTool from "./modules/node-summary.js";
 
-let pineconeIndex;
-app.listen(process.env.PORT, () => {
-  // Connect Pinecone
-  const pinecone = new Pinecone({
-    apiKey: process.env.PINECONE_API_KEY,
-    environment: "gcp-starter"
-  });
-  
-  (async () => {
-    pineconeIndex = await pinecone.index(process.env.PINECONE_INDEX);
-    console.log("pineconeIndex connected:\n" + pineconeIndex);
-  })();
-  
-  console.log("Connected to Port " + process.env.PORT);
-});
+import { FaissStore } from "langchain/vectorstores/faiss";
+import { HuggingFaceTransformersEmbeddings } from "langchain/embeddings/hf_transformers";
 
-async function initializeVectorStore(text) {
-  // chunks is an array of the file's text
-  const textSplitter = new CharacterTextSplitter({
-    separator: '\n',
-    chunkSize: 1000,
-    chunkOverlap: 200,
-  });
-  const chunks = await textSplitter.createDocuments([text]);
-  console.log("CHUNKING.... ");
-  
-  const vectorStore = new PineconeStore(
-    new OpenAIEmbeddings("gpt-3.5-turbo", { openAIApiKey: process.env.OPENAI_API_KEY }),
-    { pineconeIndex }
-  );
-  return vectorStore;
-};
-
-// Initialize vector datbaase
-app.post("/initialize", async (req, res) => {
-  const url = req.get("destinationPath");
-  // const url = "https://dingwallasc.files.wordpress.com/2020/03/pscyho-cybernetics-book-maxwell-maltz.pdf";
-
-  // Get file from URL returned as binary
-  const response = await axios.get(url, { responseType: "arraybuffer" });
-  console.log("Intantiation request made...");
-  
-  if (response.status === 200) {
-    try {
-      // Convert binary data to text:
-      const data = await PdfParse(response.data);
-      const text = data.text;
-      const vectorStore = await initializeVectorStore(text);
-      
-      console.log("Store: " + JSON.stringify(vectorStore));
-      res.json(
-        {
-          successMessage: "VectorStore instance successfully intantiated",
-          vectorStore
-        }); 
-    } catch(err) {
-        res.json({ Error: "Error instantiating vectorstore: " + err });
-    }
+let hf = new HuggingFaceTransformersEmbeddings(
+  {
+    modelName: "Xenova/e5-small-v2"
   }
-});
-
-app.post("/input", async (req, res) => {
-  const input = req.get("input");
-  const vectorStore = req.get("vectorStore");
-  try {  
-    const serverResponse = await langchain("What do you mean by that?", vectorStore);
-    res.json({ serverResponse });
-    console.log(serverResponse);    
-  }
-  catch(err) {
-    res.send("ERROR: " + err);
-    console.log(err);
-  }}
 );
 
+const app = express();
 
-async function langchain(input, vectorStore) {
-  // Search for similar docs between the vector database and the input
-  const docs = await vectorStore.similaritySearch(input, 3);
+app.listen(3000, async () => {
+  console.log("Connected to port 3000.");
+});
 
-  // Create a chain WORKING ON IT
-  const llm = new OpenAI();
-  const chain = await loadQAChain(llm, { type: "stuff" });
+app.get("/", async (req, res) => {
+  const startTime = Date.now()
+  let client = await instantiateDatabase();
 
-  // Get resposne from chain
-  let response;
+  console.log("Call initiated.");
+  // const url = req.get("destinationPath");
+  const url = "https://bitcoin.org/bitcoin.pdf";
   
-  await chain.call({ input_documents: docs, question: input}).then(res => response = res.text);  
-  return response;
-};
+  // Get file from URL returned as binary
+  const response = await axios.get(url, { responseType: "arraybuffer" });
+  if (response.status === 200) {
+    // Convert binary data to text and then embed it:
+    const data = await PdfParse(response.data);
+    const text = data.text;
+    const splitter = new RecursiveCharacterTextSplitter({
+      // chunkSize: Math.round(text.length / 800),
+      chunkSize: 1700,
+      chunkOverlap: 50
+    });
+    const docs = await splitter.createDocuments([text]);
+
+    // Create VectorStore
+    console.log("VectorStore being created...");
+    const vectorStore = await FaissStore.fromDocuments(docs, hf);
+    console.log("VectorStore created.");
+
+    // Send VectorStore to SingleStore
+    const sqlQuery = "INSERT INTO VECTORSTORE (fileUrl, vectorStore) VALUES (?, ?)";
+    await client.execute(sqlQuery, [url, vectorStore],
+      function (err, results, fields) {
+        if (err) throw err;
+        console.log(results);
+        console.log("Embeddings successfuly saved to database.");
+      }
+    )
+    client.query("SELECT * FROM VECTORSTORE",
+      function(err, result, field) {
+        if (err) throw err;
+        res.send(field)
+      }
+    );
+    console.log((Date.now() - startTime) / 1000);
+  }
+});
